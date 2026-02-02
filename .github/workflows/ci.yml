@@ -1,81 +1,53 @@
-name: Deploy and Release
+name: Simple Deploy & Release
 
 on:
   push:
     branches:
       - main
 
+# 必须赋予写权限，否则无法发布 Release 或部署
 permissions:
   contents: write
   pages: write
   id-token: write
 
 jobs:
-  release:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    outputs:
-      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
-      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
     steps:
+      # 1. 下载代码
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 必须抓取所有历史记录才能计算版本
-          persist-credentials: false # 防止使用默认 token 导致无法推送
+          fetch-depth: 0  # 关键：必须下载所有历史记录，才能计算版本号
 
-      - name: Semantic Release
-        id: semantic
-        uses: cycjimmy/semantic-release-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 2. 计算版本号 + 生成 Changelog
+      # 使用 mathieudutour/github-tag-action，它不需要 npm，纯基于 git 历史
+      - name: Bump Version and Generate Changelog
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
         with:
-          semantic_version: 19
-          # 关键修复：在这里显式声明需要用到的插件
-          extra_plugins: |
-            @semantic-release/changelog
-            @semantic-release/git
-          # 自定义配置：强制它生成 CHANGELOG.md 并提交回仓库
-          config_file: false # 不使用外部配置文件，使用下面的 arguments
-          branches: |
-            [
-              "main"
-            ]
-          plugins: |
-            [
-              "@semantic-release/commit-analyzer",
-              "@semantic-release/release-notes-generator",
-              [
-                "@semantic-release/changelog",
-                {
-                  "changelogFile": "CHANGELOG.md"
-                }
-              ],
-              [
-                "@semantic-release/git",
-                {
-                  "assets": ["CHANGELOG.md"],
-                  "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-                }
-              ],
-              "@semantic-release/github"
-            ]
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch # 如果没识别到关键字，默认升一个小版本
+          release_branches: main
 
-  deploy:
-    needs: release
+      # 3. 创建 GitHub Release (自动带上 Changelog)
+      - name: Create a GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    # if: ${{ needs.release.outputs.new_release_published == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      # 4. 部署到 GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '.' # 直接上传当前目录下的 index.html
 
       - name: Deploy to GitHub Pages
         id: deployment
