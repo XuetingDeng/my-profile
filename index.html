@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xueting Deng | Portfolio</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .dark .glass { background: rgba(15, 23, 42, 0.8); }
+        .gradient-text { background: linear-gradient(90deg, #60a5fa, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Navbar = ({ darkMode, setDarkMode }) => (
+            <nav className="fixed w-full z-50 top-0 px-6 py-4 flex justify-between items-center glass">
+                <span className="text-xl font-bold gradient-text">XD.</span>
+                <div className="flex items-center gap-6">
+                    <a href="#about" className="hover:text-blue-500 transition">About</a>
+                    <a href="#experience" className="hover:text-blue-500 transition">Experience</a>
+                    <a href="#projects" className="hover:text-blue-500 transition">Projects</a>
+                    <button 
+                        onClick={() => setDarkMode(!darkMode)}
+                        className="p-2 rounded-full bg-slate-200 dark:bg-slate-800 transition"
+                    >
+                        {darkMode ? <i className="fas fa-sun text-yellow-400"></i> : <i className="fas fa-moon text-slate-600"></i>}
+                    </button>
+                </div>
+            </nav>
+        );
+
+        const SectionHeading = ({ children }) => (
+            <h2 className="text-3xl font-bold mb-8 text-center">
+                <span className="border-b-4 border-blue-500 pb-2">{children}</span>
+            </h2>
+        );
+
+        const Portfolio = () => {
+            const [darkMode, setDarkMode] = useState(true);
+
+            useEffect(() => {
+                if (darkMode) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            }, [darkMode]);
+
+            const experiences = [
+                {
+                    role: "Software Development Intern",
+                    company: "Openprise",
+                    date: "Sep 2025 - Dec 2025",
+                    location: "San Mateo, CA",
+                    desc: "Data-driven development and platform optimization."
+                },
+                {
+                    role: "Software Development Intern",
+                    company: "Apple | Privacy Tools Team",
+                    date: "May 2025 - Aug 2025",
+                    location: "Cupertino, CA",
+                    desc: "Engineered tools focused on privacy compliance and data integrity."
+                },
+                {
+                    role: "Software Development Intern",
+                    company: "EVgo | Accounts & Billing Team",
+                    date: "Sep 2024 - Dec 2024",
+                    location: "Remote",
+                    desc: "Streamlined billing processes and account management services."
+                }
+            ];
+
+            const projects = [
+                {
+                    title: "Data Scriber",
+                    tech: "Java, DuckDB, PySpark",
+                    desc: "Implemented 'Time Travel' features allowing users to query historical data states efficiently."
+                },
+                {
+                    title: "Ticket AI Checker",
+                    tech: "Python, AI Inference",
+                    desc: "An intelligent plugin designed to verify the completeness of information in support tickets."
+                },
+                {
+                    title: "Ticket Similarity Checker",
+                    tech: "Qdrant, RAG Pipeline",
+                    desc: "Built a Retrieval-Augmented Generation pipeline to find similar tickets and reduce redundancy."
+                }
+            ];
+
+            return (
+                <div className="min-h-screen">
+                    <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
+
+                    {/* Hero Section */}
+                    <header id="about" className="pt-32 pb-20 px-6 flex flex-col items-center text-center">
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 mb-6 flex items-center justify-center text-white text-4xl font-bold">
+                            XD
+                        </div>
+                        <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
+                            Hi, I'm <span className="gradient-text">Xueting Deng</span>
+                        </h1>
+                        <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
+                            Computer Science Master's Student at the **University of San Francisco** (Graduating May 2026). 
+                            Passionate about building scalable backend systems and intelligent AI-driven applications.
+                        </p>
+                        <div className="mt-8 flex gap-4">
+                            <a href="#contact" className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition">Get In Touch</a>
+                            <div className="flex gap-4 items-center ml-4 text-2xl">
+                                <i className="fab fa-github cursor-pointer hover:text-blue-500 transition"></i>
+                                <i className="fab fa-linkedin cursor-pointer hover:text-blue-500 transition"></i>
+                            </div>
+                        </div>
+                    </header>
+
+                    {/* Experience Section */}
+                    <section id="experience" className="py-20 px-6 max-w-5xl mx-auto">
+                        <SectionHeading>Internship Experience</SectionHeading>
+                        <div className="space-y-8">
+                            {experiences.map((exp, idx) => (
+                                <div key={idx} className="p-6 rounded-xl glass hover:border-blue-500 transition-all group">
+                                    <div className="flex flex-col md:flex-row md:justify-between mb-2">
+                                        <h3 className="text-xl font-bold text-blue-500">{exp.role}</h3>
+                                        <span className="text-slate-500 font-mono">{exp.date}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="font-semibold text-lg">{exp.company}</span>
+                                        <span className="text-sm italic text-slate-400">{exp.location}</span>
+                                    </div>
+                                    <p className="text-slate-600 dark:text-slate-300">{exp.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Projects Section */}
+                    <section id="projects" className="py-20 px-6 bg-slate-100 dark:bg-slate-900/50">
+                        <div className="max-w-6xl mx-auto">
+                            <SectionHeading>Key Projects</SectionHeading>
+                            <div className="grid md:grid-cols-3 gap-8">
+                                {projects.map((proj, idx) => (
+                                    <div key={idx} className="p-8 rounded-2xl glass border border-slate-200 dark:border-slate-800 flex flex-col">
+                                        <div className="mb-4 text-blue-500 text-3xl">
+                                            <i className={`fas ${idx === 0 ? 'fa-database' : idx === 1 ? 'fa-robot' : 'fa-search'}`}></i>
+                                        </div>
+                                        <h3 className="text-2xl font-bold mb-2">{proj.title}</h3>
+                                        <p className="text-sm font-mono text-purple-500 mb-4">{proj.tech}</p>
+                                        <p className="text-slate-600 dark:text-slate-400 flex-grow">{proj.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Tech Stack Section */}
+                    <section className="py-20 px-6 text-center">
+                        <SectionHeading>Tech Stack</SectionHeading>
+                        <div className="flex flex-wrap justify-center gap-4 max-w-3xl mx-auto">
+                            {["Python", "Java", "React", "JavaScript", "TypeScript", "SQL", "Next.js", "Django", "Flask"].map(tech => (
+                                <span key={tech} className="px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium">
+                                    {tech}
+                                </span>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* Contact Section */}
+                    <footer id="contact" className="py-20 px-6 glass text-center">
+                        <SectionHeading>Contact Me</SectionHeading>
+                        <p className="mb-8 text-slate-500">Interested in collaborating or hiring? Let's connect!</p>
+                        <div className="flex flex-col items-center gap-4">
+                            <a href="mailto:dxt_jenny@outlook.com" className="text-2xl font-bold hover:text-blue-500 transition">dxt_jenny@outlook.com</a>
+                            <div className="flex gap-6 mt-4">
+                                <button className="flex items-center gap-2 px-6 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition">
+                                    <i className="fab fa-linkedin"></i> LinkedIn
+                                </button>
+                                <button className="flex items-center gap-2 px-6 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700 transition">
+                                    <i className="fab fa-github"></i> GitHub
+                                </button>
+                            </div>
+                        </div>
+                        <p className="mt-20 text-sm text-slate-500">© 2026 Xueting Deng. Built with React & Tailwind.</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<Portfolio />);
+    </script>
+</body>
+</html>
