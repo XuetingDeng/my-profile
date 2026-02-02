@@ -1,4 +1,4 @@
-name: CI/CD Portfolio
+name: Deploy and Release
 
 on:
   push:
@@ -12,35 +12,59 @@ permissions:
 
 jobs:
   release:
-    name: Release and Changelog
     runs-on: ubuntu-latest
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # 必须抓取所有历史记录才能计算版本
+          persist-credentials: false # 防止使用默认 token 导致无法推送
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
-
-      - name: Release & Generate Changelog
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # We use npx to run semantic-release without needing a local package.json
-          npx semantic-release \
-            --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/changelog,@semantic-release/git,@semantic-release/github" \
-            --repository-url https://github.com/${{ github.repository }}
+        with:
+          semantic_version: 19
+          # 关键修复：在这里显式声明需要用到的插件
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+          # 自定义配置：强制它生成 CHANGELOG.md 并提交回仓库
+          config_file: false # 不使用外部配置文件，使用下面的 arguments
+          branches: |
+            [
+              "main"
+            ]
+          plugins: |
+            [
+              "@semantic-release/commit-analyzer",
+              "@semantic-release/release-notes-generator",
+              [
+                "@semantic-release/changelog",
+                {
+                  "changelogFile": "CHANGELOG.md"
+                }
+              ],
+              [
+                "@semantic-release/git",
+                {
+                  "assets": ["CHANGELOG.md"],
+                  "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+                }
+              ],
+              "@semantic-release/github"
+            ]
 
   deploy:
-    name: Deploy to GitHub Pages
     needs: release
+
+    # if: ${{ needs.release.outputs.new_release_published == 'true' }}
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -51,7 +75,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.' # Upload the root directory (where index.html is)
+          path: '.'
 
       - name: Deploy to GitHub Pages
         id: deployment
