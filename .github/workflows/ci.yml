@@ -1,0 +1,58 @@
+name: CI/CD Portfolio
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  release:
+    name: Release and Changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Release & Generate Changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # We use npx to run semantic-release without needing a local package.json
+          npx semantic-release \
+            --plugins "@semantic-release/commit-analyzer,@semantic-release/release-notes-generator,@semantic-release/changelog,@semantic-release/git,@semantic-release/github" \
+            --repository-url https://github.com/${{ github.repository }}
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: release
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.' # Upload the root directory (where index.html is)
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
